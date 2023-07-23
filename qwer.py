@@ -1,13 +1,15 @@
 import tkinter
 from tkinter import *
 from PIL import ImageTk, Image
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from pymongo import MongoClient
-import re
+from base64 import *
+import re, io
 
 client = MongoClient('mongodb://localhost:27017')
 database = client['matchmaker']
 collection = database['users']
+upload_collection = database['uploaded_pic']
 
 app = Tk()
 w = app.winfo_screenwidth()
@@ -17,9 +19,12 @@ app.geometry(str(w) + "x" + str(h))
 app.resizable(False, False)
 app.state("zoomed")
 
+
 with open("phone.txt", "r") as file:
     phone = file.read().strip()
     user_data = collection.find_one({'phone': phone})
+
+
 # Media icons
 facebook1 = (Image.open("Icons/facebook.png"))
 r_facebook = facebook1.resize((50, 50))
@@ -50,6 +55,30 @@ side_bar.place(x=0, y=107)
 i2 = ImageTk.PhotoImage(Image.open('trial/a2.png'))
 l2 = Label(side_bar, image=i2)
 l2.place(x=0, y=0)
+
+def upload_picture():
+    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+    if file_path:
+        with open(file_path, "rb") as image_file:
+            encoded_image = b64encode(image_file.read())
+        upload_collection.insert_one({'phone':user_data['phone'],'image':encoded_image})
+with open("phone.txt", "r") as file:
+    phone = file.read().strip()
+    image_data = upload_collection.find_one({'phone': phone})
+def show_picture():
+    global image_data
+    encoded_image = image_data["image"]
+    image_data = b64decode(encoded_image)
+    image = Image.open(io.BytesIO(image_data))
+    image = image.resize((200,150))
+    # Convert the image to a Tkinter-compatible format
+    tk_image = ImageTk.PhotoImage(image)
+    # Create a Tkinter label and display the image
+    image_label = Label(home_frame, image = tk_image)
+    image_label.image = tk_image
+    image_label.place(x = 10,y = 10)
+    
+
 
 '''
 Creating LabelFrame home_frame and adding other widgets for "home" option
@@ -82,6 +111,8 @@ right_btn_img = ImageTk.PhotoImage(Image.open("Icons/left-arrow.png"))
 right_button = Button(home_frame, image=right_btn_img, relief="flat")
 right_button.place(x=399, y=228)
 
+
+
 # like_button
 like_button_img = ImageTk.PhotoImage(Image.open("Home/like.png"))
 like_button = Button(home_frame, image=like_button_img)
@@ -91,6 +122,24 @@ like_button.place(x=395, y=370)
 dislike_button_img = ImageTk.PhotoImage(Image.open("Home/dislike.png"))
 dislike_button = Button(home_frame, image=dislike_button_img)
 dislike_button.place(x=395, y=455)
+
+upload_button = Button(home_frame, text="Upload your picture",command=upload_picture)
+upload_button.place(x=395, y=530)
+
+show_button = Button(home_frame, text="Picture",command=show_picture)
+show_button.place(x=395, y=590)
+
+def picture():
+    global encoded_image
+    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+    if file_path:
+        with open(file_path, "rb") as image_file:
+            encoded_image = b64encode(image_file.read())
+    
+
+
+
+
 
 
 # '''Creating Entries to display user info'''

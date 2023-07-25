@@ -70,13 +70,13 @@ def show_picture():
     encoded_image = image_data["image"]
     image_data = b64decode(encoded_image)
     image = Image.open(io.BytesIO(image_data))
-    image = image.resize((200,150))
+    image = image.resize((345, 568))
     # Convert the image to a Tkinter-compatible format
     tk_image = ImageTk.PhotoImage(image)
     # Create a Tkinter label and display the image
     image_label = Label(home_frame, image = tk_image)
     image_label.image = tk_image
-    image_label.place(x = 10,y = 10)
+    image_label.place(x = 35,y = 32)
     
 
 
@@ -249,8 +249,9 @@ user_seeking.config(state="readonly")
 
 
 def add_hobbies():
-    hobbies_frame = Frame(profile_frame, height=100, width=50, bg='white')
-    home_frame.place(x=10, y=30)
+    import hobbies
+    
+    
 
 
 add_hobbies_btn = Button(profile_frame, text="Add Hobbies",
@@ -576,6 +577,14 @@ setting_list_frame.configure(
     width=294, height=745, bg='#EEEEEE', borderwidth=0, relief='flat')
 setting_list_frame.place(x=2, y=-1)
 
+def logout():
+    app.destroy()
+    import login_trial
+logoutIcon = Image.open("C:\\Users\\Dell\\Desktop\\MatchMaker\\Icons\\logout.png")
+logoutIcon = ImageTk.PhotoImage(logoutIcon)
+
+logout_btn = Button(setting_frame, text = "Logout", border = 0, cursor = "hand2", width = 200, image = logoutIcon, compound = LEFT, height = 0, font = ("", 14), bg = "#FFFACD", justify = LEFT, fg = "red",command=logout)
+logout_btn.place(x = 0, y = 10)
 # Adding background image to home_frame
 bg_setting = ImageTk.PhotoImage(Image.open('Setting/setting_list.png'))
 setting_list_label = Label(setting_list_frame, image=bg_setting)

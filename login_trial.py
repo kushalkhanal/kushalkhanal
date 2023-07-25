@@ -284,7 +284,7 @@ def Login():
             login.destroy()
             with open("phone.txt", "w") as file:
                 file.write(phone)
-            import qwer
+            import dash_board
             # import dashboard
         else:
             messagebox.showinfo('Login Result', 'Incorrect Password')

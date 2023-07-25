@@ -1,46 +1,36 @@
-import tkinter as tk
+from tkinter import *
+from pymongo import *
 
+hobbies_window = Tk()
+hobbies_window.title('Hobbies')
+hobbies_window.resizable(0, 0)
+hobbies_window.geometry('300x400')
+hobbies_window.config(bg="#DB005C")
 
-def on_checkbox_click():
-    selected_hobbies = [hobby_var.get()
-                        for hobby_var in hobbies_vars if hobby_var.get() != ""]
-    print("Selected Hobbies:", ", ".join(selected_hobbies))
+client = MongoClient('mongodb://localhost:27017')
+database = client['matchmaker']
+hobbies_collection = database['users_hobbies']
 
+def create_hobbies_check_btns(hobbies_window, hobby, x, y):
+    # Use IntVar to represent the state of the Checkbutton (0 for unchecked, 1 for checked)
+    CheckVar = IntVar()
+    check_btns = Checkbutton(hobbies_window, text=hobby, width=10, font=('', 12, 'bold'), bg="#DB005C", variable=CheckVar,onvalue=1,offvalue=0)
+    check_btns.configure(anchor='w')
+    check_btns.place(x=x, y=y)
+    return CheckVar
 
-# List of hobbies
-hobbies_list = ['Playing', 'Singing', 'Dancing', 'Reading', 'Writing']
+def save_submit():
+    pass
 
-# Create the main application window
-app = tk.Tk()
-app.title("Profile Frame with Hobbies")
+hobbies_list = []
+hobbies_list.append(create_hobbies_check_btns(hobbies_window, "Playing", 10, 30))
+hobbies_list.append(create_hobbies_check_btns(hobbies_window, "Reading", 10, 60))
+hobbies_list.append(create_hobbies_check_btns(hobbies_window, "Music", 10, 90))
 
-# ... (your previous code for creating the profile_frame and other widgets) ...
+# Store the IntVar objects associated with the Checkbuttons in a separate list
+hobbies_check_vars = [CheckVar for CheckVar in hobbies_list]
 
-# Function to create check buttons for hobbies
+submit_btn = Button(hobbies_window, text="Submit", font=('', 14, 'bold'), bg='#DB005C', command=save_submit)
+submit_btn.place(x=40, y=150)
 
-
-def create_hobbies_checkboxes():
-    hobbies_frame = Frame(profile_frame, bg="#DB005C")
-    # Adjust the position as per your requirement
-    hobbies_frame.place(x=500, y=535)
-
-    hobbies_vars = [tk.StringVar() for _ in range(len(hobbies_list))]
-
-    for i, hobby in enumerate(hobbies_list):
-        checkbox = tk.Checkbutton(
-            hobbies_frame, text=hobby, variable=hobbies_vars[i], onvalue=hobby, offvalue="")
-        checkbox.pack(anchor=tk.W)
-
-    return hobbies_vars
-
-
-hobbies_vars = create_hobbies_checkboxes()
-
-# Creating the "Show Hobbies" button
-show_hobbies_btn = tk.Button(
-    profile_frame, text="Show Hobbies", command=on_checkbox_click)
-# Adjust the position as per your requirement
-show_hobbies_btn.place(x=650, y=570)
-
-# Start the tkinter main event loop
-app.mainloop()
+hobbies_window.mainloop()

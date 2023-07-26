@@ -80,8 +80,8 @@ def signup():
         elif len(password) > 7:
             messagebox.showinfo('Registration', 'Weak Password.')
         else:
-            collection.insert_one({'First Name': fname, 'Last Name': lastname_entry.get(), "DOB": date_Of_Birth_entry.get(
-            ), 'phone': phone_entry.get(), 'email': mail_id_entry.get(), 'password': password_entry.get(), 'gender': gender_var.get(), 'seeking gender': seeking_var.get(), 'location': Location_entry.get()})
+            collection.insert_one({'First Name': fname, 'Last Name': lname, "DOB": dob, 'phone': phone, 'email': email,
+                                  'password': password, 'gender': gender, 'seeking gender': seeking, 'location': location})
             messagebox.showinfo('Registration', 'Registration Successful')
 
     # Creating first frames for signUp

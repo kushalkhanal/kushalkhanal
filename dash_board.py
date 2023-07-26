@@ -580,7 +580,7 @@ setting_list_frame.place(x=2, y=-1)
 def logout():
     app.destroy()
     import login_trial
-logoutIcon = Image.open("C:\\Users\\Dell\\Desktop\\MatchMaker\\Icons\\logout.png")
+logoutIcon = Image.open("D:\App\Icons\logout.png")
 logoutIcon = ImageTk.PhotoImage(logoutIcon)
 
 logout_btn = Button(setting_frame, text = "Logout", border = 0, cursor = "hand2", width = 200, image = logoutIcon, compound = LEFT, height = 0, font = ("", 14), bg = "#FFFACD", justify = LEFT, fg = "red",command=logout)

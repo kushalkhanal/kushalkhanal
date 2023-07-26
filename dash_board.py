@@ -4,7 +4,8 @@ from PIL import ImageTk, Image
 from tkinter import messagebox, filedialog
 from pymongo import MongoClient
 from base64 import *
-import re, io
+import re
+import io
 
 client = MongoClient('mongodb://localhost:27017')
 database = client['matchmaker']
@@ -56,28 +57,88 @@ i2 = ImageTk.PhotoImage(Image.open('trial/a2.png'))
 l2 = Label(side_bar, image=i2)
 l2.place(x=0, y=0)
 
+
 def upload_picture():
-    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
-    if file_path:
-        with open(file_path, "rb") as image_file:
-            encoded_image = b64encode(image_file.read())
-        upload_collection.insert_one({'phone':user_data['phone'],'image':encoded_image})
+    file_path = filedialog.askopenfilename(
+        filetypes=[("Image files", "*.jpg;*.jpeg;*.png")], multiple=True)
+
+    for i in file_path:
+        print(i)
+        if i:
+            with open(i, "rb") as i:
+                encoded_image = b64encode(i.read())
+                upload_collection.find_one_and_update(
+                    {'phone': user_data['phone'], 'image': encoded_image})
+
+
+global imageList
 with open("phone.txt", "r") as file:
     phone = file.read().strip()
-    image_data = upload_collection.find_one({'phone': phone})
+image_data = upload_collection.find({'phone': phone})
+
+
+imageList = [i for i in image_data]
+global current_image_index
+current_image_index = 0
+prev_image_index = len(imageList)-1
+
+
 def show_picture():
-    global image_data
-    encoded_image = image_data["image"]
-    image_data = b64decode(encoded_image)
-    image = Image.open(io.BytesIO(image_data))
+    global current_image_index
+    if current_image_index >= len(imageList):
+        current_image_index = 0
+    val = imageList[current_image_index]
+    encoded_image = val["image"]
+    cvVal = b64decode(encoded_image)
+    image = Image.open(io.BytesIO(cvVal))
     image = image.resize((345, 568))
     # Convert the image to a Tkinter-compatible format
     tk_image = ImageTk.PhotoImage(image)
     # Create a Tkinter label and display the image
-    image_label = Label(home_frame, image = tk_image)
+    image_label = Label(home_frame, image=tk_image)
     image_label.image = tk_image
-    image_label.place(x = 35,y = 32)
-    
+    image_label.place(x=35, y=32)
+    current_image_index += 1
+
+
+def preFunction():
+    global prev_image_index
+    if prev_image_index <= 0:
+        prev_image_index = len(imageList)-1
+    val = imageList[prev_image_index]
+    encoded_image = val["image"]
+    cvVal = b64decode(encoded_image)
+    image = Image.open(io.BytesIO(cvVal))
+    image = image.resize((345, 568))
+    # Convert the image to a Tkinter-compatible format
+    tk_image = ImageTk.PhotoImage(image)
+    # Create a Tkinter label and display the image
+    image_label = Label(home_frame, image=tk_image)
+    image_label.image = tk_image
+    image_label.place(x=35, y=32)
+    prev_image_index -= 1
+
+
+def forFunction():
+    global current_image_index
+    if current_image_index >= len(imageList):
+        current_image_index = 0
+    val = imageList[current_image_index]
+    encoded_image = val["image"]
+    cvVal = b64decode(encoded_image)
+    image = Image.open(io.BytesIO(cvVal))
+    image = image.resize((345, 568))
+    # Convert the image to a Tkinter-compatible format
+    tk_image = ImageTk.PhotoImage(image)
+    # Create a Tkinter label and display the image
+    image_label = Label(home_frame, image=tk_image)
+    image_label.image = tk_image
+    image_label.place(x=35, y=32)
+    current_image_index += 1
+
+
+def matchMaking():
+    print("hello")
 
 
 '''
@@ -94,7 +155,12 @@ home_bg_label = Label(home_frame, image=bg_home, bg="#EEEEEE")
 home_bg_label.place(x=1, y=-1)
 
 # Image viewer code
-girl_image = Image.open("Home/girlph.jpg")
+if len(imageList) == 0:
+    girl_image = Image.open("Home/girlph.jpg")
+else:
+    lastUpload = len(imageList)-1
+    girl_img = imageList[lastUpload]
+    girl_image = Image.open(io.BytesIO(b64decode(girl_img['image'])))
 girl_image_res = girl_image.resize((345, 568))
 girl_image_tk = ImageTk.PhotoImage(girl_image_res)
 girl_label = Label(home_frame, image=girl_image_tk)
@@ -103,14 +169,15 @@ girl_label.place(x=35, y=32)
 
 # left_button
 left_btn_img = ImageTk.PhotoImage(Image.open("Icons/right-arrow.png"))
-left_button = Button(home_frame, image=left_btn_img, relief="flat")
+left_button = Button(home_frame, image=left_btn_img,
+                     relief="flat", command=preFunction)
 left_button.place(x=399, y=174)
 
 # right_button
 right_btn_img = ImageTk.PhotoImage(Image.open("Icons/left-arrow.png"))
-right_button = Button(home_frame, image=right_btn_img, relief="flat")
+right_button = Button(home_frame, image=right_btn_img,
+                      relief="flat", command=forFunction)
 right_button.place(x=399, y=228)
-
 
 
 # like_button
@@ -118,28 +185,42 @@ like_button_img = ImageTk.PhotoImage(Image.open("Home/like.png"))
 like_button = Button(home_frame, image=like_button_img)
 like_button.place(x=395, y=370)
 
+user_data_cursor = collection.find()
+userList = list(user_data_cursor)
+
+if userList:
+    userListValue = userList[0]
+    userNameVal = userListValue.get('First Name', '')
+    userLastNameVal = userListValue.get('Last Name', '')
+    userFullName = userNameVal + " " + userLastNameVal
+
+    # Assuming you have already created the 'home_frame' tkinter frame.
+
+    matchLabel = Label(home_frame, text=userFullName)
+    matchLabel.place(x=395, y=446)
+else:
+    print("No users found in the database.")
+
 # dislike_button
 dislike_button_img = ImageTk.PhotoImage(Image.open("Home/dislike.png"))
 dislike_button = Button(home_frame, image=dislike_button_img)
-dislike_button.place(x=395, y=455)
+dislike_button.place(x=395, y=480)
 
-upload_button = Button(home_frame, text="Upload your picture",command=upload_picture)
-upload_button.place(x=395, y=530)
+upload_button = Button(
+    home_frame, text="Upload your picture", command=upload_picture)
+upload_button.place(x=395, y=585)
 
-show_button = Button(home_frame, text="Picture",command=show_picture)
-show_button.place(x=395, y=590)
+show_button = Button(home_frame, text="Picture", command=show_picture)
+show_button.place(x=395, y=595)
+
 
 def picture():
     global encoded_image
-    file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
+    file_path = filedialog.askopenfilename(
+        filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
     if file_path:
         with open(file_path, "rb") as image_file:
             encoded_image = b64encode(image_file.read())
-    
-
-
-
-
 
 
 # '''Creating Entries to display user info'''
@@ -250,8 +331,6 @@ user_seeking.config(state="readonly")
 
 def add_hobbies():
     import hobbies
-    
-    
 
 
 add_hobbies_btn = Button(profile_frame, text="Add Hobbies",
@@ -577,14 +656,18 @@ setting_list_frame.configure(
     width=294, height=745, bg='#EEEEEE', borderwidth=0, relief='flat')
 setting_list_frame.place(x=2, y=-1)
 
+
 def logout():
     app.destroy()
     import login_trial
-logoutIcon = Image.open("D:\App\Icons\logout.png")
+
+
+logoutIcon = Image.open("Icons/logout.png")
 logoutIcon = ImageTk.PhotoImage(logoutIcon)
 
-logout_btn = Button(setting_frame, text = "Logout", border = 0, cursor = "hand2", width = 200, image = logoutIcon, compound = LEFT, height = 0, font = ("", 14), bg = "#FFFACD", justify = LEFT, fg = "red",command=logout)
-logout_btn.place(x = 0, y = 10)
+logout_btn = Button(setting_frame, text="Logout", border=0, cursor="hand2", width=200, image=logoutIcon,
+                    compound=LEFT, height=0, font=("", 14), bg="#FFFACD", justify=LEFT, fg="red", command=logout)
+logout_btn.place(x=0, y=10)
 # Adding background image to home_frame
 bg_setting = ImageTk.PhotoImage(Image.open('Setting/setting_list.png'))
 setting_list_label = Label(setting_list_frame, image=bg_setting)

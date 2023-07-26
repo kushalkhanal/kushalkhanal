@@ -41,16 +41,16 @@ def before2():
 
 
 def toggle_password_visibility():
-    if Password_entry["show"] == "*":
-        Password_entry["show"] = ""
+    if password_entry["show"] == "*":
+        password_entry["show"] = ""
         eye.configure(image=eye1)
     else:
-        Password_entry["show"] = "*"
+        password_entry["show"] = "*"
         eye.configure(image=eye2)
 
 
 def signup():
-    global Password_entry, eye1, eye, eye2
+    global password_entry, eye1, eye, eye2
     global listbox, selected_listbox, listbox2, selected_listbox2
     global frame1, frame2, frame3, frame4, frame5
     global signin, phone_entry
@@ -69,6 +69,7 @@ def signup():
         gender = gender_var.get()
         seeking = seeking_var.get()
         location = Location_entry.get()
+        print(len(password))
         # if fname == '' or lname == '' or dob == '' or phone == '' or email == '' or password == '' or gender == '' or seeking == '' or location == '':
         #     messagebox.showinfo('Registration', 'No fields can be empty.')
         if collection.find_one({'phone': phone}):
@@ -77,11 +78,11 @@ def signup():
             messagebox.showinfo('Registration', 'Invalid Email.')
         elif not re.match(r'^\d{10}$', phone):
             messagebox.showinfo('Registration', 'Invalid Number')
-        elif len(password) > 7:
+        elif len(password) < 5:
             messagebox.showinfo('Registration', 'Weak Password.')
         else:
             collection.insert_one({'First Name': fname, 'Last Name': lname, "DOB": dob, 'phone': phone, 'email': email,
-                                  'password': password, 'gender': gender, 'seeking gender': seeking, 'location': location})
+                                  'password': password, 'gender': gender, 'seeking gender': seeking, 'location': location, 'matches': []})
             messagebox.showinfo('Registration', 'Registration Successful')
 
     # Creating first frames for signUp
@@ -167,9 +168,9 @@ def signup():
     Password = Label(frame2, text="Password", font=(
         'Ariel', 15), fg="#8294C4", bg="#DBDFEA")
     Password.place(x=120, y=450)
-    Password_entry = Entry(frame2, width=20, font='Ariel, 15',
+    password_entry = Entry(frame2, width=20, font='Ariel, 15',
                            borderwidth=0, bg='#DBDFEA', fg='#ACB1D6', show='*')
-    Password_entry.place(x=300, y=450)
+    password_entry.place(x=300, y=450)
     canvas2.create_line(30, 270, 270, 270, fill="#8294C4", width=3)
 
     eye1 = ImageTk.PhotoImage(Image.open('login_signup/eye.png'))
